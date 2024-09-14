@@ -1,32 +1,86 @@
-/*
-INPUT
-아홉 줄에 걸쳐 한 줄에 9개씩 게임 시작 전 스도쿠판 각 줄에 쓰여 있는 숫자가 한 칸씩 띄워서 차례로 주어진다. 
-스도쿠 판의 빈 칸의 경우에는 0이 주어진다. 스도쿠 판을 규칙대로 채울 수 없는 경우의 입력은 주어지지 않는다.
+#include <stdio.h>
 
-OUPUT
-모든 빈 칸이 채워진 스도쿠 판의 최종 모습을 아홉 줄에 걸쳐 한 줄에 9개씩 한 칸씩 띄워서 출력한다.
-스도쿠 판을 채우는 방법이 여럿인 경우는 그 중 하나만을 출력한다.
+int sudoku[9][9];
+int stack[82][2];
+int top = -1;
 
-EXAMPLE
-INP
-0 3 5 4 6 9 2 7 8
-7 8 2 1 0 5 6 0 9
-0 6 0 2 7 8 1 3 5
-3 2 1 0 4 6 8 9 7
-8 0 4 9 1 3 5 0 6
-5 9 6 8 2 0 4 1 3
-9 1 7 6 5 2 0 8 0
-6 0 3 7 0 1 9 5 2
-2 5 8 3 9 4 7 6 0
+void Sudoku(int y, int x);  
 
-OUT
-1 3 5 4 6 9 2 7 8
-7 8 2 1 3 5 6 4 9
-4 6 9 2 7 8 1 3 5
-3 2 1 5 4 6 8 9 7
-8 7 4 9 1 3 5 2 6
-5 9 6 8 2 7 4 1 3
-9 1 7 6 5 2 3 8 4
-6 4 3 7 8 1 9 5 2
-2 5 8 3 9 4 7 6 1
+int check(int n, int y, int x){
+  for(int i = 0; i < 9; i++){
+    if(sudoku[y][i] == n || sudoku[i][x] == n){
+      return 1;
+    }
+  }
+
+  for(int i = (y / 3) * 3; i < ((y / 3) + 1) * 3; i++){
+    for(int j = (x / 3) * 3; j < ((x / 3) + 1) * 3; j++){
+      if(sudoku[i][j] == n){
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+int main(){
+
+  //get input
+  for(int i = 0; i < 9; i++){
+    for(int j = 0; j < 9; j++){
+      scanf("%d", &sudoku[i][j]);
+    }
+  }
+
+  //start solving
+  for(int i = 0; i < 9; i++){
+    for(int j = 0; j < 9; j++){
+      if(sudoku[i][j] == 0){
+        Sudoku(i , j);
+        i = stack[top][0];
+        j = stack[top][1]-1;
+      }
+    }
+  }
+
+  //print out the result
+  for(int i = 0; i < 9; i++){
+    for(int j = 0; j < 9; j++){
+      printf("%d", sudoku[i][j]);
+      if(j != 8){
+        printf(" ");
+      }
+    }
+    printf("\n");
+  }
+  
+  return 0;
+}
+
+void Sudoku(int y, int x){
+  //get number of the position
+  int n = sudoku[y][x];
+
+  for(int i = n + 1; i < 10; i++){
+    //put the number to find if there is any fitable number
+    if(check(i, y, x) == 0){
+      sudoku[y][x] = i;
+      top++;
+      stack[top][0] = y;
+      stack[top][1] = x;
+      return;
+    }
+  }
+
+  //reset data
+  sudoku[y][x] = 0;
+  //if there is nofitable number recursively call
+  top--;
+  Sudoku(stack[top+1][0], stack[top+1][1]);
+  return;
+}
+
+/* 
+Error occured when put top-- in recursive line.
+As Sudoku() is unfinished top-- didn't worked so it made out of bound error repeatedly
 */
